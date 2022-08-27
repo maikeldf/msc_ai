@@ -1,0 +1,83 @@
+---
+title: "Summarising Data - Failure Detector Model"
+author: "Maikel Dal Farra"
+date: "8/20/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+library(tidyverse)
+data.df = read_csv("../data/input.csv")
+data.df$Variance<-as.numeric(sprintf("%0.2f", round(data.df$VAR, digits = 2)))
+data.df$Mean<-as.numeric(sprintf("%0.2f", round(data.df$MEAN, digits = 2)))
+data.df$Status[data.df$STATUS == "F"] <- "FUNCTIONAL"
+data.df$Status[data.df$STATUS == "D"] <- "DEGRADED"
+data.df<-data.df[ , !(names(data.df) %in% c("VAR","Count","STATUS","MEAN"))]
+#data.df[order(data.df$Variance, rev(data.df$Variance), decreasing = TRUE),] %>% head()
+data.df
+```
+
+```{r}
+require(table1)
+table1(~ CPU1 + CPU2 + CPU3 + CPU4 | Status, data=data.df, overall = F)
+```
+```{r}
+require(table1)
+table1(~ CPU1 + CPU2 + CPU3 + CPU4 | Status*Vm, data=data.df, overall = F)
+```
+
+```{r}
+require(table1)
+vm <- factor(data.df$Vm)
+label(vm) <- "VMs"
+table1(~ vm  | Status, data=data.df, overall = F)
+```
+
+```{r}
+data.df %>% count(Status)
+```
+
+```{r}
+data.df %>% group_by(Status)%>%summarise(sample.size = n(),
+               mean.CPU1.score = round(mean(CPU1), 2),
+               median.CPU1.score = round(median(CPU1), 2),
+               sd.CPU1.score = round(sd(CPU1), 2)
+               )
+```
+
+```{r}
+data.df %>% ggplot(aes(y = Status, x = CPU1, fill= Status)) +
+         geom_boxplot() + ggtitle("CPU1 vs Status") + stat_summary(fun=mean, colour="yellow", geom="point", shape=18, size=3) +
+   ylab("Status") +
+   xlab("CPU1") + 
+   theme(legend.position = "none")
+```
+```{r}
+data.df %>% ggplot(aes(y = Status, x = CPU4, fill= Status)) +
+         geom_boxplot() + ggtitle("CPU4 vs Status") + stat_summary(fun=mean, colour="yellow", geom="point", shape=18, size=3) +
+   ylab("Status") +
+   xlab("CPU4") + 
+   theme(legend.position = "none")
+```
+```{r}
+  total <- data.df %>% count(Status)
+  total$Proportion = (total$n/sum(total$n))
+  total$Percentage = 100 * total$Proportion
+  total
+```
+
+```{r}
+  library(ggplot2)
+  ggplot(total, aes(fill=Status, y=Proportion, x=Status)) + 
+    geom_bar(position="dodge", stat="identity") +
+    geom_col(position = position_stack(reverse = TRUE)) +
+    coord_flip() +
+    geom_text(aes(label = paste0(sprintf("n = %d ", n), sprintf("(%0.2f", round(Percentage, digits = 2)),"%)"), family = "serif"), position = position_stack(reverse = TRUE, vjust = 0.5), colour = "white")
+    theme(legend.position = "none")
+```
