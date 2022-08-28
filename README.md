@@ -24,9 +24,10 @@ Thesis latex document.
 ```
 
 ## Project
-### Data Summary
+### Rds
 ```
 R Project. Data summary showing results of the descriptive statistics process.
+See thesis document chapter 6 for more details.
 ```
 
 ### Fdm
