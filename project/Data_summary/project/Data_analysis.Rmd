@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```{r}
 library(tidyverse)
-data.df = read_csv("../data/input.csv")
+data.df = read_csv("../../data/input.csv")
 data.df$Variance<-as.numeric(sprintf("%0.2f", round(data.df$VAR, digits = 2)))
 data.df$Mean<-as.numeric(sprintf("%0.2f", round(data.df$MEAN, digits = 2)))
 data.df$Status[data.df$STATUS == "F"] <- "FUNCTIONAL"
